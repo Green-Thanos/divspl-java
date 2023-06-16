@@ -1,5 +1,6 @@
 package dev.mccue.divspl;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -420,7 +421,7 @@ record Program(
 public class Main {
     public static void main(String[] args) {
         if (args.length == 0) {
-            System.err.println("");
+            System.err.println();
             System.exit(1);
         }
         else if (args.length > 1) {
@@ -433,17 +434,18 @@ public class Main {
                 Path filePath = Path.of(filename);
                 var content = Files.readString(filePath);
                 var parseResult = Program.parse(content);
-                switch (parseResult) {
-                    case Program program -> {
-                        var className = filePath.getFileName().toString();
-                        className = className.split("\\.")[0];
-                        program.compile(className);
-                    }
-                    case Problem problem -> {
-                        problem.print(content);
-                        System.exit(1);
-                    }
+                if (parseResult instanceof Program program) {
+                    program.run(System.out);
+                    //var className = filePath.getFileName().toString();
+                    //className = className.split("\\.")[0];
+                    //program.compile(className);
                 }
+                else if (parseResult instanceof Problem problem) {
+                    problem.print(content);
+                    System.exit(1);
+                }
+            } catch (FileNotFoundException e) {
+
             } catch (IOException e) {
                 System.err.println("error reading file");
                 System.exit(1);
